@@ -3,4 +3,4 @@ ultralytics
 opencv-python-headless
 numpy
 requests
-gunicorns
+gunicorn
