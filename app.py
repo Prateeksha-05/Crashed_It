@@ -11,7 +11,10 @@ TELEGRAM_BOT_TOKEN = '8939155184:AAH2d5MM4xwqsWnIF5Yus6QdiiZj4UvRa54'
 
 # Configure upload folder
 UPLOAD_FOLDER = 'uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+try:
+  os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+except OSError:
+  pass
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Load YOLOv8 model
