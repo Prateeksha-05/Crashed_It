@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CRASHEDIT </title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #e3736b;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        /* Top Left Small Logo */
+        .top-logo {
+            display: inline-block;
+            background: #222;
+            color: #bfa1e6;
+            font-weight: 900;
+            font-size: 1.1rem;
+            padding: 6px 14px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid #111;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        /* Dashboard Layout Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 25px;
+            max-width: 1200px;
+            margin: auto;
+        }
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        /* UI Card style */
+        .card {
+            background-color: #d87067; /* Slight variation / matching tone */
+            border: 2px solid #b5564e;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.1), 0 4px 8px rgba(0,0,0,0.15);
+            color: white;
+        }
+        .card h3 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+        /* Vehicle Count Box */
+        .vehicle-count-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        /* Traffic Violations Box */
+        .violations-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        /* Right Side Big Analysis Box */
+        .analysis-box {
+            background-color: #d87067;
+            border: 2px solid #b5564e;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.1), 0 4px 8px rgba(0,0,0,0.15);
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+        .note {
+            font-size: 0.75rem;
+            color: #fce8e6;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+        /* Content area inside the big box split between image and text cards */
+        .content-split {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+        .image-preview {
+            flex: 1;
+            min-width: 280px;
+        }
+        .image-preview img {
+            width: 100%;
+            border-radius: 8px;
+            border: 2px solid #a34840;
+        }
+        .text-breakdown {
+            flex: 1;
+            min-width: 260px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .vehicle-pill {
+            background: rgba(0, 0, 0, 0.15);
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 0, 0.1);
+        }
+        .vehicle-pill strong {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+        .status-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .heavy { background: #b30000; color: white; }
+        .moderate { background: #e6b800; color: #222; }
+        .minor { background: #008000; color: white; }
+        
+        .back-link {
+            margin-top: 20px;
+            display: inline-block;
+            color: #fff;
+            text-decoration: underline;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="/" class="top-logo">CRASHEDIT</a>
+
+    <div class="dashboard">
+        <!-- Left Column -->
+        <div class="left-column">
+            <!-- No. Of Vehicles Involved Box -->
+            <div class="card">
+                <h3>No. Of Vehicles Involved:</h3>
+                <div class="vehicle-count-value">{{ total }}</div>
+            </div>
+
+            <!-- Possible Traffic Violations Box -->
+            <div class="card">
+                <h3>Possible Traffic Violations:</h3>
+                <ul class="violations-list">
+                    <li>- Rear-end collision pattern observed</li>
+                    <li>- Severe kinetic impact detected</li>
+                    <li>- Potential high-speed deceleration</li>
+                    <li>- Lane deviation indicator</li>
+                    <li>- Structural crumple zone engagement</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Right Column: Vehicle Damage Analysis -->
+        <div class="analysis-box">
+            <h3>Vehicle Damage Analysis</h3>
+            <div class="note">Note: Based on Visual interpretation only</div>
+
+            <div class="content-split">
+                <!-- Annotated Image -->
+                <div class="image-preview">
+                    <img src="{{ image_url }}" alt="Analyzed Accident Scene">
+                </div>
+
+                <!-- Structured Text Breakdown -->
+                <div class="text-breakdown">
+                    {% if total == 0 %}
+                        <p>No vehicles detected in the frame.</p>
+                    {% else %}
+                        {% for car in vehicles %}
+                            <div class="vehicle-pill">
+                                <strong>Vehicle {{ car.id }}: {{ car.type }}</strong>
+                                Condition: 
+                                <span class="status-tag {% if car.condition == 'Heavy Damage' %}heavy{% elif car.condition == 'Moderate Damage' %}moderate{% else %}minor{% endif %}">
+                                    {{ car.condition }}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                <a href="/" class="back-link">&larr; Upload a different photo</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
