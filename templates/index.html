@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CRASHEDIT - Accident Analysis</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background-color: #e3736b;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+        }
+        .container { text-align: center; width: 550px; }
+        .logo {
+            font-size: 4rem; font-weight: 900; color: #bfa1e6;
+            text-transform: uppercase; letter-spacing: 2px;
+            text-shadow: 3px 3px 0px #222, -2px -2px 0px #222, 2px -2px 0px #222, -2px 2px 0px #222;
+            margin-bottom: 35px;
+        }
+        /* Single Unified Input Box Container */
+        .unified-box {
+            background: #d4a5a5;
+            border: 2px solid #555; border-radius: 10px;
+            padding: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            display: flex; align-items: center; background-color: #fff;
+        }
+        .unified-input {
+            flex-grow: 1; border: none; outline: none;
+            padding: 12px 15px; font-size: 14px; background: transparent;
+            color: #333;
+        }
+        input[type="file"] { display: none; }
+        .action-btns {
+            display: flex; gap: 5px;
+        }
+        .btn-browse {
+            background-color: #a3b8cc; color: #222; padding: 10px 15px;
+            font-weight: 600; font-size: 13px; cursor: pointer; border-radius: 6px;
+            border: 1px solid #555; text-decoration: none;
+        }
+        .btn-browse:hover { background-color: #8da4bc; }
+        
+        .submit-container { margin-top: 25px; }
+        .analyze-btn {
+            background-color: #333; color: white; border: none;
+            padding: 12px 30px; font-size: 16px; font-weight: bold;
+            border-radius: 6px; cursor: pointer; box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+        }
+        .analyze-btn:hover { background-color: #111; }
+        .hint-text {
+            color: #fce8e6; font-size: 0.85rem; margin-top: 12px; font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">CRASHEDIT</div>
+        
+        <form action="/analyze" method="post" enctype="multipart/form-data">
+            <!-- Single Integrated Bar -->
+            <div class="unified-box">
+                <input type="text" id="main-input" name="gdrive_url" class="unified-input" placeholder="Upload file or paste Google Drive link here..." autocomplete="off">
+                
+                <div class="action-btns">
+                    <label class="btn-browse" for="file-input">Browse File</label>
+                    <input type="file" id="file-input" name="photo" accept="image/*" onchange="handleFileSelect(this)">
+                </div>
+            </div>
+
+            <div class="hint-text">Paste a Drive link directly OR click 'Browse File' to pick from your device.</div>
+
+            <div class="submit-container">
+                <button type="submit" class="analyze-btn">Run Analysis</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function handleFileSelect(input) {
+            const textInput = document.getElementById('main-input');
+            if (input.files && input.files[0]) {
+                // Show the chosen file name inside the text bar and disable text input slightly to show file mode is active
+                textInput.value = "[Selected File]: " + input.files[0].name;
+                textInput.style.color = "#0056b3";
+                textInput.style.fontWeight = "bold";
+            }
+        }
+    </script>
+</body>
+</html>
