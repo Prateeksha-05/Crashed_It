@@ -18,7 +18,8 @@ except OSError:
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Load YOLOv8 model
-model = YOLO('yolov8n.pt')
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'yolov8n.pt')
+model = YOLO(MODEL_PATH)
 
 
 def download_image_from_gdrive(drive_url, save_path):
