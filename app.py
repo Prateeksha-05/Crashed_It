@@ -7,6 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, send_from_
 from ultralytics import YOLO
 
 app = Flask(__name__)
+TELEGRAM_BOT_TOKEN = '8939155184:AAH2d5MM4xwqsWnIF5Yus6QdiiZj4UvRa54'
 
 # Configure upload folder
 UPLOAD_FOLDER = 'uploads'
@@ -16,7 +17,8 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Load YOLOv8 model
 model = YOLO('yolov8n.pt')
 
-#Extracts File ID from a Google Drive URL and downloads the image.
+
+# Extracts File ID from a Google Drive URL and downloads the image.
 def download_image_from_gdrive(drive_url, save_path):
   file_id_match = re.search(r'[-\w]{25,}', drive_url)
   if not file_id_match:
@@ -43,26 +45,31 @@ def analyze_traffic_violations(detected_vehicles, total_count):
   violations = []
 
   if total_count >= 2:
-    violations.append("- Failure to maintain safe following distance (Rear-end collision pattern)")
-    violations.append("- Potential delayed reaction time / distracted driving")
-    violations.append("- Intersection right-of-way violation or improper lane merging")
+    violations.append(
+        '- Failure to maintain safe following distance (Rear-end collision'
+        ' pattern)'
+    )
+    violations.append('- Potential delayed reaction time / distracted driving')
+    violations.append('- Intersection right-of-way violation or improper lane merging')
   elif total_count == 1:
-    violations.append("- Single-vehicle loss of control")
-    violations.append("- Driving too fast for road/weather conditions")
-    violations.append("- Potential fixed-object or roadside hazard collision")
+    violations.append('- Single-vehicle loss of control')
+    violations.append('- Driving too fast for road/weather conditions')
+    violations.append('- Potential fixed-object or roadside hazard collision')
   else:
-    violations.append("- Insufficient vehicle telemetry detected in frame")
+    violations.append('- Insufficient vehicle telemetry detected in frame')
 
   heavy_damages = [v for v in detected_vehicles if v['condition'] == 'Heavy Damage']
-  moderate_damages = [v for v in detected_vehicles if v['condition'] == 'Moderate Damage']
+  moderate_damages = [
+      v for v in detected_vehicles if v['condition'] == 'Moderate Damage'
+  ]
 
   if len(heavy_damages) > 0:
-    violations.append("- High-velocity impact indicator (Severe structural deformation)")
-    violations.append("- Excessive speeding or failure to yield right-of-way")
+    violations.append('- High-velocity impact indicator (Severe structural deformation)')
+    violations.append('- Excessive speeding or failure to yield right-of-way')
   elif len(moderate_damages) > 0:
-    violations.append("- Moderate kinetic transfer (Failure to brake adequately)")
+    violations.append('- Moderate kinetic transfer (Failure to brake adequately)')
   else:
-    violations.append("- Low-impact or minor contact friction indicator")
+    violations.append('- Low-impact or minor contact friction indicator')
 
   return violations
 
@@ -140,7 +147,9 @@ def process_accident_image(filepath, filename):
         if (x2 - x1) < 40 or (y2 - y1) < 40:
           continue
 
-        raw_detections.append({'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'class': class_name})
+        raw_detections.append(
+            {'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'class': class_name}
+        )
 
   raw_detections = sorted(raw_detections, key=lambda d: d['x1'])
 
@@ -164,8 +173,13 @@ def process_accident_image(filepath, filename):
     cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), 3)
     label = f'Vehicle {vehicle_count}: {class_name}'
     cv2.putText(
-        image, label, (x1, max(y1 - 10, 20)),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2
+        image,
+        label,
+        (x1, max(y1 - 10, 20)),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.6,
+        (0, 255, 0),
+        2,
     )
 
   annotated_filename = 'analyzed_' + filename
@@ -201,9 +215,9 @@ def analyze():
     success = download_image_from_gdrive(drive_url, save_path)
     if not success:
       return (
-          'Error: Could not download image from the provided Google Drive link. '
-          'Make sure link permissions are set to "Anyone with the link can view". '
-          '<br><br><a href="/">Go Back</a>'
+          'Error: Could not download image from the provided Google Drive link.'
+          ' Make sure link permissions are set to "Anyone with the link can'
+          ' view". <br><br><a href="/">Go Back</a>'
       )
   else:
     return redirect(url_for('index'))
@@ -225,5 +239,77 @@ def static_uploads(filename):
   return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
+@app.route('/telegram-webhook', methods=['POST'])
+def telegram_webhook():
+  data = request.json
+
+  if 'message' in data and 'photo' in data['message']:
+    message = data['message']
+    chat_id = message['chat']['id']
+
+    photo_list = message['photo']
+    file_id = photo_list[-1]['file_id']
+
+    file_info_url = (
+        f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}'
+    )
+    resp = requests.get(file_info_url).json()
+
+    if resp.get('ok'):
+      file_path = resp['result']['file_path']
+      download_url = (
+          f'https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{file_path}'
+      )
+
+      local_filename = f'telegram_{chat_id}.jpg'
+      save_path = os.path.join(app.config['UPLOAD_FOLDER'], local_filename)
+
+      img_data = requests.get(download_url).content
+      with open(save_path, 'wb') as f:
+        f.write(img_data)
+
+      annotated_filename, vehicles = process_accident_image(
+          save_path, local_filename
+      )
+      violations = analyze_traffic_violations(vehicles, len(vehicles))
+
+      response_text = f'🚨 *CRASHEDIT ANALYSIS REPORT* 🚨\n\n'
+      response_text += f'🚗 *Total Vehicles Detected:* {len(vehicles)}\n'
+
+      for v in vehicles:
+        response_text += (
+            f"- Vehicle {v['id']} ({v['type']}): *{v['condition']}* (Score:"
+            f" {v['density']})\n"
+        )
+
+      response_text += f'\n⚖️ *Potential Violations:*\n'
+      for viol in violations:
+        response_text += f'{viol}\n'
+
+      send_message_url = (
+          f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
+      )
+      requests.post(
+          send_message_url,
+          json={
+              'chat_id': chat_id,
+              'text': response_text,
+              'parse_mode': 'Markdown',
+          },
+      )
+
+      send_photo_url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto'
+      annotated_path = os.path.join(app.config['UPLOAD_FOLDER'], annotated_filename)
+      with open(annotated_path, 'rb') as img_file:
+        requests.post(
+            send_photo_url,
+            data={'chat_id': chat_id, 'caption': 'Annotated Forensic Breakdown'},
+            files={'photo': img_file},
+        )
+
+  return 'OK', 200
+
+
 if __name__ == '__main__':
-  app.run(debug=True, port=5000)
+  port = int(os.environ.get('PORT', 5000))
+  app.run(host='0.0.0.0', port=port, debug=True)
