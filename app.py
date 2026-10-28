@@ -21,7 +21,10 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # Load YOLOv8 model
 MODEL_PATH = os.path.join(os.path.dirname(__file__), 'yolov8n.pt')
 model = YOLO(MODEL_PATH)
-
+try:
+    model(np.zeros((640, 640, 3), dtype=np.uint8))
+except Exception as e:
+    print(f"Warmup notice: {e}")
 
 def download_image_from_gdrive(drive_url, save_path):
     file_id_match = re.search(r'[-\w]{25,}', drive_url)
