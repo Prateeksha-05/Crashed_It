@@ -134,6 +134,12 @@ def process_accident_image(filepath, filename):
         return None, []
 
     H, W, _ = image.shape
+    max_dimension = 800
+    if max(H, W) > max_dimension:
+      scale = max_dimension / float(max(H, W))
+      image = cv2.resize(image, (int(W * scale), int(H * scale)))
+
+    H, W, _ = image.shape
     vehicle_classes = [2, 3, 5, 7]
 
     results = model(image, conf=0.4, iou=0.45)
