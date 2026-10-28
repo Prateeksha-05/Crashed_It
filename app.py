@@ -11,7 +11,7 @@ TELEGRAM_BOT_TOKEN = '8939155184:AAH2d5MM4xwqsWnIF5Yus6QdiiZj4UvRa54'
 
 # Define upload folder safely
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
-app.config['UPLOADS FOLDER']=UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER']=UPLOAD_FOLDER
 # If 'uploads' somehow exists as a file, remove it
 if os.path.exists(UPLOAD_FOLDER) and not os.path.isdir(UPLOAD_FOLDER):
   os.remove(UPLOAD_FOLDER)
