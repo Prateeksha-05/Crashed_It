@@ -11,18 +11,12 @@ TELEGRAM_BOT_TOKEN = '8939155184:AAH2d5MM4xwqsWnIF5Yus6QdiiZj4UvRa54'
 
 # Define upload folder safely
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
-
+app.config['UPLOADS FOLDER']=UPLOAD_FOLDER
 # If 'uploads' somehow exists as a file, remove it
 if os.path.exists(UPLOAD_FOLDER) and not os.path.isdir(UPLOAD_FOLDER):
   os.remove(UPLOAD_FOLDER)
-
-# Create the directory properly
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Save path
-save_path = os.path.join(UPLOAD_FOLDER, f'telegram_{user_id}.jpg')
-with open(save_path, 'wb') as f:
-  f.write(photo_response.content)
 
 # Load YOLOv8 model
 MODEL_PATH = os.path.join(os.path.dirname(__file__), 'yolov8n.pt')
